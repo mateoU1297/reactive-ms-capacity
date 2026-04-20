@@ -1,3 +1,27 @@
+server:
+  port: 8081
+
 spring:
   application:
     name: ms-capacity
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/capacity_db?currentSchema=ms_capacity
+    username: postgres
+    password: 1297
+  flyway:
+    url: jdbc:postgresql://localhost:5432/capacity_db
+    user: postgres
+    password: 1297
+    locations: classpath:db/migration
+    schemas: ms_capacity
+    default-schema: ms_capacity
+
+clients:
+  technology:
+    url: http://localhost:8080
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
