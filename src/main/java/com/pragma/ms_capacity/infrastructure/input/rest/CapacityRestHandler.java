@@ -22,4 +22,14 @@ public class CapacityRestHandler {
                         .status(HttpStatus.CREATED)
                         .bodyValue(response));
     }
+
+    public Mono<ServerResponse> findAll(ServerRequest request) {
+        int page = Integer.parseInt(request.queryParam("page").orElse("0"));
+        int size = Integer.parseInt(request.queryParam("size").orElse("10"));
+        String sortBy = request.queryParam("sortBy").orElse("name");
+        boolean ascending = Boolean.parseBoolean(request.queryParam("ascending").orElse("true"));
+
+        return capacityHandler.findAll(page, size, sortBy, ascending)
+                .flatMap(response -> ServerResponse.ok().bodyValue(response));
+    }
 }
