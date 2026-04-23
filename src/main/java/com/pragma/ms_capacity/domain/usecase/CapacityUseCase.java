@@ -2,6 +2,7 @@ package com.pragma.ms_capacity.domain.usecase;
 
 import com.pragma.ms_capacity.domain.api.ICapacityServicePort;
 import com.pragma.ms_capacity.domain.exception.CapacityAlreadyExistsException;
+import com.pragma.ms_capacity.domain.exception.CapacityNotFoundException;
 import com.pragma.ms_capacity.domain.exception.TechnologyNotFoundException;
 import com.pragma.ms_capacity.domain.model.Capacity;
 import com.pragma.ms_capacity.domain.model.PagedResult;
@@ -38,6 +39,12 @@ public class CapacityUseCase implements ICapacityServicePort {
                     capacity.setTechnologies(technologies);
                     return capacityPersistencePort.save(capacity);
                 });
+    }
+
+    @Override
+    public Mono<Capacity> findById(Long id) {
+        return capacityPersistencePort.findById(id)
+                .switchIfEmpty(Mono.error(new CapacityNotFoundException(id)));
     }
 
     @Override

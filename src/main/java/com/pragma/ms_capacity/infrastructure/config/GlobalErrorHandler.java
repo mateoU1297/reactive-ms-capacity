@@ -1,6 +1,7 @@
 package com.pragma.ms_capacity.infrastructure.config;
 
 import com.pragma.ms_capacity.domain.exception.CapacityAlreadyExistsException;
+import com.pragma.ms_capacity.domain.exception.CapacityNotFoundException;
 import com.pragma.ms_capacity.domain.exception.DuplicateTechnologyException;
 import com.pragma.ms_capacity.domain.exception.InvalidFieldException;
 import com.pragma.ms_capacity.domain.exception.InvalidTechnologyCountException;
@@ -52,7 +53,7 @@ public class GlobalErrorHandler extends AbstractErrorWebExceptionHandler {
                 error instanceof DuplicateTechnologyException) {
             status = HttpStatus.BAD_REQUEST;
             message = error.getMessage();
-        } else if (error instanceof TechnologyNotFoundException) {
+        } else if (error instanceof TechnologyNotFoundException || error instanceof CapacityNotFoundException) {
             status = HttpStatus.NOT_FOUND;
             message = error.getMessage();
         } else {

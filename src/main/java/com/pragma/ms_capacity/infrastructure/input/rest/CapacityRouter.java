@@ -78,11 +78,38 @@ public class CapacityRouter {
                                     @ApiResponse(responseCode = "400", description = "Invalid parameters")
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/capacities/{id}",
+                    method = RequestMethod.GET,
+                    beanClass = CapacityRestHandler.class,
+                    beanMethod = "findById",
+                    operation = @Operation(
+                            operationId = "findCapacityById",
+                            summary = "Find capacity by id",
+                            tags = {"Capacity"},
+                            parameters = {
+                                    @Parameter(
+                                            name = "id",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            schema = @Schema(type = "integer", format = "int64")
+                                    )
+                            },
+                            responses = {
+                                    @ApiResponse(responseCode = "200",
+                                            content = @Content(
+                                                    schema = @Schema(implementation = CapacityResponse.class)
+                                            )),
+                                    @ApiResponse(responseCode = "404", description = "Capacity not found")
+                            }
+                    )
             )
     })
     public RouterFunction<ServerResponse> capacityRoutes(CapacityRestHandler handler) {
         return RouterFunctions.route()
                 .POST("/api/v1/capacities", handler::save)
+                .GET("/api/v1/capacities/{id}", handler::findById)
                 .GET("/api/v1/capacities", handler::findAll)
                 .build();
     }

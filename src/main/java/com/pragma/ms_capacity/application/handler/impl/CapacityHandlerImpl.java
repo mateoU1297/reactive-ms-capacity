@@ -24,6 +24,12 @@ public class CapacityHandlerImpl implements ICapacityHandler {
     }
 
     @Override
+    public Mono<CapacityResponse> findById(Long id) {
+        return capacityServicePort.findById(id)
+                .map(capacityMapper::toResponse);
+    }
+
+    @Override
     public Mono<PagedResponse<CapacityResponse>> findAll(int page, int size, String sortBy, boolean ascending) {
         return capacityServicePort.findAll(page, size, sortBy, ascending)
                 .map(paged -> new PagedResponse<>(

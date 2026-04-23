@@ -7,5 +7,7 @@ import reactor.core.publisher.Mono;
 public interface ICapacityServicePort {
     Mono<Capacity> save(Capacity capacity);
 
+    Mono<Capacity> findById(Long id);
+
     Mono<PagedResult<Capacity>> findAll(int page, int size, String sortBy, boolean ascending);
 }
