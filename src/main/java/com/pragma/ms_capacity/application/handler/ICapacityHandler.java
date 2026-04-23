@@ -8,5 +8,7 @@ import reactor.core.publisher.Mono;
 public interface ICapacityHandler {
     Mono<CapacityResponse> save(CapacityRequest request);
 
+    Mono<CapacityResponse> findById(Long id);
+
     Mono<PagedResponse<CapacityResponse>> findAll(int page, int size, String sortBy, boolean ascending);
 }

@@ -23,6 +23,12 @@ public class CapacityRestHandler {
                         .bodyValue(response));
     }
 
+    public Mono<ServerResponse> findById(ServerRequest request) {
+        Long id = Long.parseLong(request.pathVariable("id"));
+        return capacityHandler.findById(id)
+                .flatMap(response -> ServerResponse.ok().bodyValue(response));
+    }
+
     public Mono<ServerResponse> findAll(ServerRequest request) {
         int page = Integer.parseInt(request.queryParam("page").orElse("0"));
         int size = Integer.parseInt(request.queryParam("size").orElse("10"));

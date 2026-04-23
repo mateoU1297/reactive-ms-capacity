@@ -47,6 +47,12 @@ public class CapacityPersistenceAdapter implements ICapacityPersistencePort {
     }
 
     @Override
+    public Mono<Capacity> findById(Long id) {
+        return capacityRepository.findById(id)
+                .map(capacityEntityMapper::toDomain);
+    }
+
+    @Override
     public Mono<Boolean> existsByName(String name) {
         return capacityRepository.existsByName(name);
     }
