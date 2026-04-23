@@ -2,9 +2,11 @@ package com.pragma.ms_capacity.domain.usecase;
 
 import com.pragma.ms_capacity.domain.exception.CapacityAlreadyExistsException;
 import com.pragma.ms_capacity.domain.exception.DuplicateTechnologyException;
+import com.pragma.ms_capacity.domain.exception.InvalidFieldException;
 import com.pragma.ms_capacity.domain.exception.InvalidTechnologyCountException;
 import com.pragma.ms_capacity.domain.exception.TechnologyNotFoundException;
 import com.pragma.ms_capacity.domain.model.Capacity;
+import com.pragma.ms_capacity.domain.model.PagedResult;
 import com.pragma.ms_capacity.domain.model.Technology;
 import com.pragma.ms_capacity.domain.spi.ICapacityPersistencePort;
 import com.pragma.ms_capacity.domain.spi.ITechnologyClientPort;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -139,6 +142,70 @@ class CapacityUseCaseTest {
 
         StepVerifier.create(capacityUseCase.save(capacity))
                 .expectNextCount(1)
+                .verifyComplete();
+    }
+
+    @Test
+    void findAll_validParams_success() {
+        PagedResult<Capacity> paged = new PagedResult<>(List.of(capacity), 0, 10, 1L, 1);
+        when(capacityPersistencePort.findAll(0, 10, "name", true))
+                .thenReturn(Mono.just(paged));
+
+        StepVerifier.create(capacityUseCase.findAll(0, 10, "name", true))
+                .expectNextMatches(r -> r.getContent().size() == 1)
+                .verifyComplete();
+    }
+
+    @Test
+    void findAll_throwsInvalidField() {
+        StepVerifier.create(capacityUseCase.findAll(0, 10, "invalid", true))
+                .expectError(InvalidFieldException.class)
+                .verify();
+
+        verifyNoInteractions(capacityPersistencePort);
+    }
+
+    @Test
+    void findAll_negativePage_throwsInvalidField() {
+        StepVerifier.create(capacityUseCase.findAll(-1, 10, "name", true))
+                .expectError(InvalidFieldException.class)
+                .verify();
+
+        verifyNoInteractions(capacityPersistencePort);
+    }
+
+    @Test
+    void findAll_zeroSize_throwsInvalidField() {
+        StepVerifier.create(capacityUseCase.findAll(0, 0, "name", true))
+                .expectError(InvalidFieldException.class)
+                .verify();
+
+        verifyNoInteractions(capacityPersistencePort);
+    }
+
+    @Test
+    void findAll_descendingOrder_success() {
+        PagedResult<Capacity> paged = new PagedResult<>(
+                List.of(capacity), 0, 10, 1L, 1
+        );
+        when(capacityPersistencePort.findAll(0, 10, "name", false))
+                .thenReturn(Mono.just(paged));
+
+        StepVerifier.create(capacityUseCase.findAll(0, 10, "name", false))
+                .expectNextMatches(r -> r.getContent().size() == 1)
+                .verifyComplete();
+    }
+
+    @Test
+    void findAll_TechnologyCount_success() {
+        PagedResult<Capacity> paged = new PagedResult<>(
+                List.of(capacity), 0, 10, 1L, 1
+        );
+        when(capacityPersistencePort.findAll(0, 10, "technologyCount", true))
+                .thenReturn(Mono.just(paged));
+
+        StepVerifier.create(capacityUseCase.findAll(0, 10, "technologyCount", true))
+                .expectNextMatches(r -> r.getContent().size() == 1)
                 .verifyComplete();
     }
 }

@@ -15,6 +15,7 @@ public class CapacityValidator {
     private static final int MAX_TECHNOLOGIES = 20;
     private static final int MAX_NAME_LENGTH = 50;
     private static final int MAX_DESCRIPTION_LENGTH = 90;
+    private static final List<String> VALID_SORT_FIELDS = List.of("name", "technologyCount");
 
     private CapacityValidator() {}
 
@@ -23,6 +24,17 @@ public class CapacityValidator {
                 .then(validateDescription(capacity.getDescription()))
                 .then(validateTechnologies(capacity.getTechnologies()))
                 .thenReturn(capacity);
+    }
+
+    public static Mono<Boolean> validatePagination(int page, int size, String sortBy) {
+        if (page < 0)
+            return Mono.error(new InvalidFieldException("Page must be >= 0"));
+        if (size <= 0)
+            return Mono.error(new InvalidFieldException("Size must be > 0"));
+        if (!VALID_SORT_FIELDS.contains(sortBy))
+            return Mono.error(new InvalidFieldException(
+                    "SortBy must be one of: " + VALID_SORT_FIELDS));
+        return Mono.just(true);
     }
 
     private static Mono<Void> validateName(String name) {

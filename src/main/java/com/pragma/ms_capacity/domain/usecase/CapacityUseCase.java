@@ -4,6 +4,7 @@ import com.pragma.ms_capacity.domain.api.ICapacityServicePort;
 import com.pragma.ms_capacity.domain.exception.CapacityAlreadyExistsException;
 import com.pragma.ms_capacity.domain.exception.TechnologyNotFoundException;
 import com.pragma.ms_capacity.domain.model.Capacity;
+import com.pragma.ms_capacity.domain.model.PagedResult;
 import com.pragma.ms_capacity.domain.model.Technology;
 import com.pragma.ms_capacity.domain.spi.ICapacityPersistencePort;
 import com.pragma.ms_capacity.domain.spi.ITechnologyClientPort;
@@ -37,6 +38,12 @@ public class CapacityUseCase implements ICapacityServicePort {
                     capacity.setTechnologies(technologies);
                     return capacityPersistencePort.save(capacity);
                 });
+    }
+
+    @Override
+    public Mono<PagedResult<Capacity>> findAll(int page, int size, String sortBy, boolean ascending) {
+        return CapacityValidator.validatePagination(page, size, sortBy)
+                .flatMap(valid -> capacityPersistencePort.findAll(page, size, sortBy, ascending));
     }
 
     private Mono<List<Technology>> validateTechnologiesExist(List<Technology> technologies) {

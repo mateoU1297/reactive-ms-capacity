@@ -97,4 +97,50 @@ class CapacityValidatorTest {
                 .expectError(DuplicateTechnologyException.class)
                 .verify();
     }
+
+    @Test
+    void validatePagination_success() {
+        StepVerifier.create(CapacityValidator.validatePagination(0, 10, "name"))
+                .expectNext(true)
+                .verifyComplete();
+    }
+
+    @Test
+    void validatePagination_sortByTechnologyCount() {
+        StepVerifier.create(CapacityValidator.validatePagination(0, 10, "technologyCount"))
+                .expectNext(true)
+                .verifyComplete();
+    }
+
+    @Test
+    void validatePagination_throwsInvalidField() {
+        StepVerifier.create(CapacityValidator.validatePagination(-1, 10, "name"))
+                .expectErrorMatches(e -> e instanceof InvalidFieldException &&
+                        e.getMessage().equals("Page must be >= 0"))
+                .verify();
+    }
+
+    @Test
+    void validatePagination_zeroSize() {
+        StepVerifier.create(CapacityValidator.validatePagination(0, 0, "name"))
+                .expectErrorMatches(e -> e instanceof InvalidFieldException &&
+                        e.getMessage().equals("Size must be > 0"))
+                .verify();
+    }
+
+    @Test
+    void validatePagination_negativeSize() {
+        StepVerifier.create(CapacityValidator.validatePagination(0, -1, "name"))
+                .expectErrorMatches(e -> e instanceof InvalidFieldException &&
+                        e.getMessage().equals("Size must be > 0"))
+                .verify();
+    }
+
+    @Test
+    void validatePagination_invalidSort() {
+        StepVerifier.create(CapacityValidator.validatePagination(0, 10, "invalid"))
+                .expectErrorMatches(e -> e instanceof InvalidFieldException &&
+                        e.getMessage().contains("SortBy must be one of"))
+                .verify();
+    }
 }

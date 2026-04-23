@@ -2,7 +2,10 @@ package com.pragma.ms_capacity.infrastructure.input.rest;
 
 import com.pragma.ms_capacity.application.dto.CapacityRequest;
 import com.pragma.ms_capacity.application.dto.CapacityResponse;
+import com.pragma.ms_capacity.application.dto.PagedResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -30,7 +33,6 @@ public class CapacityRouter {
                             operationId = "saveCapacity",
                             summary = "Register a new capacity",
                             tags = {"Capacity"},
-                            parameters = {},
                             requestBody = @RequestBody(
                                     required = true,
                                     content = @Content(
@@ -49,11 +51,39 @@ public class CapacityRouter {
                                     @ApiResponse(responseCode = "409", description = "Capacity already exists")
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/capacities",
+                    method = RequestMethod.GET,
+                    beanClass = CapacityRestHandler.class,
+                    beanMethod = "findAll",
+                    operation = @Operation(
+                            operationId = "findAllCapacities",
+                            summary = "List capacities paginated",
+                            tags = {"Capacity"},
+                            parameters = {
+                                    @Parameter(name = "page", in = ParameterIn.QUERY,
+                                            schema = @Schema(type = "integer", defaultValue = "0")),
+                                    @Parameter(name = "size", in = ParameterIn.QUERY,
+                                            schema = @Schema(type = "integer", defaultValue = "10")),
+                                    @Parameter(name = "sortBy", in = ParameterIn.QUERY,
+                                            schema = @Schema(type = "string", allowableValues = {"name", "technologyCount"},
+                                                    defaultValue = "name")),
+                                    @Parameter(name = "ascending", in = ParameterIn.QUERY,
+                                            schema = @Schema(type = "boolean", defaultValue = "true"))
+                            },
+                            responses = {
+                                    @ApiResponse(responseCode = "200",
+                                            content = @Content(schema = @Schema(implementation = PagedResponse.class))),
+                                    @ApiResponse(responseCode = "400", description = "Invalid parameters")
+                            }
+                    )
             )
     })
     public RouterFunction<ServerResponse> capacityRoutes(CapacityRestHandler handler) {
         return RouterFunctions.route()
                 .POST("/api/v1/capacities", handler::save)
+                .GET("/api/v1/capacities", handler::findAll)
                 .build();
     }
 }

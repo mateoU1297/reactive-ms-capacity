@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
@@ -38,8 +39,9 @@ public class BeanConfig {
     }
 
     @Bean
-    public ICapacityPersistencePort capacityPersistencePort() {
-        return new CapacityPersistenceAdapter(capacityRepository, capacityTechnologyRepository, capacityEntityMapper);
+    public ICapacityPersistencePort capacityPersistencePort(ITechnologyClientPort technologyClientPort, DatabaseClient databaseClient) {
+        return new CapacityPersistenceAdapter(capacityRepository, capacityTechnologyRepository, capacityEntityMapper,
+                technologyClientPort, databaseClient);
     }
 
     @Bean
