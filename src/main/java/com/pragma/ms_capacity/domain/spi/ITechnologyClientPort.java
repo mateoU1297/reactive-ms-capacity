@@ -5,4 +5,6 @@ import reactor.core.publisher.Mono;
 
 public interface ITechnologyClientPort {
     Mono<Technology> findById(Long id);
+
+    Mono<Void> delete(Long id);
 }

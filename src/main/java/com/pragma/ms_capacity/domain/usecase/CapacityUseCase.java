@@ -53,6 +53,16 @@ public class CapacityUseCase implements ICapacityServicePort {
                 .flatMap(valid -> capacityPersistencePort.findAll(page, size, sortBy, ascending));
     }
 
+    @Override
+    public Mono<Void> delete(Long id) {
+        return capacityPersistencePort.existsById(id)
+                .flatMap(exists -> {
+                    if (!exists)
+                        return Mono.error(new CapacityNotFoundException(id));
+                    return capacityPersistencePort.delete(id);
+                });
+    }
+
     private Mono<List<Technology>> validateTechnologiesExist(List<Technology> technologies) {
         return Flux.fromIterable(technologies)
                 .flatMap(tech -> technologyClientPort.findById(tech.getId())

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.r2dbc.core.DatabaseClient;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -70,19 +71,17 @@ public class CapacityPersistenceAdapter implements ICapacityPersistencePort {
                         Sort sort = Sort.by(
                                 ascending ? Sort.Direction.ASC : Sort.Direction.DESC, "name"
                         );
-                        capacities = capacityRepository.findAllBy(
-                                PageRequest.of(page, size, sort)
-                        );
+                        capacities = capacityRepository.findAllBy(PageRequest.of(page, size, sort));
                     } else {
                         String sql = """
-                            SELECT c.id, c.name, c.description
-                            FROM ms_capacity.capacity c
-                            LEFT JOIN ms_capacity.capacity_technology ct
-                                ON c.id = ct.capacity_id
-                            GROUP BY c.id, c.name, c.description
-                            ORDER BY COUNT(ct.technology_id) %s
-                            LIMIT %d OFFSET %d
-                            """.formatted(direction, size, offset);
+                                SELECT c.id, c.name, c.description
+                                FROM ms_capacity.capacity c
+                                LEFT JOIN ms_capacity.capacity_technology ct
+                                    ON c.id = ct.capacity_id
+                                GROUP BY c.id, c.name, c.description
+                                ORDER BY COUNT(ct.technology_id) %s
+                                LIMIT %d OFFSET %d
+                                """.formatted(direction, size, offset);
 
                         capacities = databaseClient.sql(sql)
                                 .map((row, meta) -> new CapacityEntity(
@@ -104,6 +103,28 @@ public class CapacityPersistenceAdapter implements ICapacityPersistencePort {
                                     (int) Math.ceil((double) total / size)
                             ));
                 });
+    }
+
+    @Override
+    @Transactional
+    public Mono<Void> delete(Long id) {
+        return capacityTechnologyRepository.findByCapacityId(id)
+                .flatMap(rel ->
+                        capacityTechnologyRepository.countByTechnologyId(rel.getTechnologyId())
+                                .flatMap(count -> {
+                                    if (count <= 1)
+                                        return technologyClientPort.delete(rel.getTechnologyId());
+
+                                    return Mono.empty();
+                                })
+                )
+                .then(capacityTechnologyRepository.deleteByCapacityId(id))
+                .then(capacityRepository.deleteById(id));
+    }
+
+    @Override
+    public Mono<Boolean> existsById(Long id) {
+        return capacityRepository.existsById(id);
     }
 
     private Mono<Capacity> mapWithTechnologies(CapacityEntity entity) {
