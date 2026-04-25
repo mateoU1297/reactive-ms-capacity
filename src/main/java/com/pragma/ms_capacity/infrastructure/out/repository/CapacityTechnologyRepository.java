@@ -9,4 +9,6 @@ public interface CapacityTechnologyRepository extends ReactiveCrudRepository<Cap
     Flux<CapacityTechnologyEntity> findByCapacityId(Long capacityId);
 
     Mono<Void> deleteByCapacityId(Long capacityId);
+
+    Mono<Long> countByTechnologyId(Long technologyId);
 }

@@ -104,6 +104,25 @@ public class CapacityRouter {
                                     @ApiResponse(responseCode = "404", description = "Capacity not found")
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/capacities/{id}",
+                    method = RequestMethod.DELETE,
+                    beanClass = CapacityRestHandler.class,
+                    beanMethod = "delete",
+                    operation = @Operation(
+                            operationId = "deleteCapacity",
+                            summary = "Delete a capacity",
+                            tags = {"Capacity"},
+                            parameters = {
+                                    @Parameter(name = "id", in = ParameterIn.PATH, required = true,
+                                            schema = @Schema(type = "integer", format = "int64"))
+                            },
+                            responses = {
+                                    @ApiResponse(responseCode = "204", description = "Capacity deleted successfully"),
+                                    @ApiResponse(responseCode = "404", description = "Capacity not found")
+                            }
+                    )
             )
     })
     public RouterFunction<ServerResponse> capacityRoutes(CapacityRestHandler handler) {
@@ -111,6 +130,7 @@ public class CapacityRouter {
                 .POST("/api/v1/capacities", handler::save)
                 .GET("/api/v1/capacities/{id}", handler::findById)
                 .GET("/api/v1/capacities", handler::findAll)
+                .DELETE("/api/v1/capacities/{id}", handler::delete)
                 .build();
     }
 }

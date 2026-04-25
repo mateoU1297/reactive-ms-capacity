@@ -1,6 +1,7 @@
 package com.pragma.ms_capacity.domain.usecase;
 
 import com.pragma.ms_capacity.domain.exception.CapacityAlreadyExistsException;
+import com.pragma.ms_capacity.domain.exception.CapacityNotFoundException;
 import com.pragma.ms_capacity.domain.exception.DuplicateTechnologyException;
 import com.pragma.ms_capacity.domain.exception.InvalidFieldException;
 import com.pragma.ms_capacity.domain.exception.InvalidTechnologyCountException;
@@ -23,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -46,7 +49,7 @@ class CapacityUseCaseTest {
                 new Technology(2L, "Spring"),
                 new Technology(3L, "Docker")
         );
-        capacity = new Capacity(null, "Backend", "Backend capacity", technologies);
+        capacity = new Capacity(1L, "Backend", "Backend capacity", technologies);
     }
 
     @Test
@@ -207,5 +210,43 @@ class CapacityUseCaseTest {
         StepVerifier.create(capacityUseCase.findAll(0, 10, "technologyCount", true))
                 .expectNextMatches(r -> r.getContent().size() == 1)
                 .verifyComplete();
+    }
+
+    @Test
+    void findById_existingCapacity_success() {
+        when(capacityPersistencePort.findById(1L)).thenReturn(Mono.just(capacity));
+
+        StepVerifier.create(capacityUseCase.findById(1L))
+                .expectNextMatches(c -> c.getId().equals(1L))
+                .verifyComplete();
+    }
+
+    @Test
+    void findById_notFound_throwsCapacityNotFound() {
+        when(capacityPersistencePort.findById(1L)).thenReturn(Mono.empty());
+
+        StepVerifier.create(capacityUseCase.findById(1L))
+                .expectError(CapacityNotFoundException.class)
+                .verify();
+    }
+
+    @Test
+    void delete_existingCapacity_success() {
+        when(capacityPersistencePort.existsById(1L)).thenReturn(Mono.just(true));
+        when(capacityPersistencePort.delete(1L)).thenReturn(Mono.empty());
+
+        StepVerifier.create(capacityUseCase.delete(1L))
+                .verifyComplete();
+    }
+
+    @Test
+    void delete_notFound_throwsCapacityNotFound() {
+        when(capacityPersistencePort.existsById(1L)).thenReturn(Mono.just(false));
+
+        StepVerifier.create(capacityUseCase.delete(1L))
+                .expectError(CapacityNotFoundException.class)
+                .verify();
+
+        verify(capacityPersistencePort, never()).delete(any());
     }
 }

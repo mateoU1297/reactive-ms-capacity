@@ -21,4 +21,14 @@ public class TechnologyWebClientAdapter implements ITechnologyClientPort {
                         response -> Mono.error(new TechnologyNotFoundException(id)))
                 .bodyToMono(Technology.class);
     }
+
+    @Override
+    public Mono<Void> delete(Long id) {
+        return webClient.delete()
+                .uri("/api/v1/technologies/{id}", id)
+                .retrieve()
+                .onStatus(status -> status.value() == 404,
+                        response -> Mono.empty())
+                .bodyToMono(Void.class);
+    }
 }

@@ -42,4 +42,9 @@ public class CapacityHandlerImpl implements ICapacityHandler {
                         paged.getTotalPages()
                 ));
     }
+
+    @Override
+    public Mono<Void> delete(Long id) {
+        return capacityServicePort.delete(id);
+    }
 }

@@ -11,4 +11,6 @@ public interface ICapacityHandler {
     Mono<CapacityResponse> findById(Long id);
 
     Mono<PagedResponse<CapacityResponse>> findAll(int page, int size, String sortBy, boolean ascending);
+
+    Mono<Void> delete(Long id);
 }
