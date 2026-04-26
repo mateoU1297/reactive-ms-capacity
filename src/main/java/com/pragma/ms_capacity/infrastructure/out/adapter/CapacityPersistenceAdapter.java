@@ -50,7 +50,16 @@ public class CapacityPersistenceAdapter implements ICapacityPersistencePort {
     @Override
     public Mono<Capacity> findById(Long id) {
         return capacityRepository.findById(id)
-                .map(capacityEntityMapper::toDomain);
+                .flatMap(entity ->
+                        capacityTechnologyRepository.findByCapacityId(entity.getId())
+                                .flatMap(rel -> technologyClientPort.findById(rel.getTechnologyId()))
+                                .collectList()
+                                .map(technologies -> {
+                                    Capacity capacity = capacityEntityMapper.toDomain(entity);
+                                    capacity.setTechnologies(technologies);
+                                    return capacity;
+                                })
+                );
     }
 
     @Override
