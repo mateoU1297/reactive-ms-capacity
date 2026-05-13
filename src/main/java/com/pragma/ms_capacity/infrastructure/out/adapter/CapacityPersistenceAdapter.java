@@ -7,12 +7,10 @@ import com.pragma.ms_capacity.domain.spi.ITechnologyClientPort;
 import com.pragma.ms_capacity.infrastructure.out.entity.CapacityEntity;
 import com.pragma.ms_capacity.infrastructure.out.entity.CapacityTechnologyEntity;
 import com.pragma.ms_capacity.infrastructure.out.mapper.ICapacityEntityMapper;
+import com.pragma.ms_capacity.infrastructure.out.repository.CapacityQueryRepository;
 import com.pragma.ms_capacity.infrastructure.out.repository.CapacityRepository;
 import com.pragma.ms_capacity.infrastructure.out.repository.CapacityTechnologyRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -26,7 +24,7 @@ public class CapacityPersistenceAdapter implements ICapacityPersistencePort {
     private final CapacityTechnologyRepository capacityTechnologyRepository;
     private final ICapacityEntityMapper capacityEntityMapper;
     private final ITechnologyClientPort technologyClientPort;
-    private final DatabaseClient databaseClient;
+    private final CapacityQueryRepository capacityQueryRepository;
 
     @Override
     public Mono<Capacity> save(Capacity capacity) {
@@ -76,30 +74,10 @@ public class CapacityPersistenceAdapter implements ICapacityPersistencePort {
                 .flatMap(total -> {
                     Flux<CapacityEntity> capacities;
 
-                    if (sortBy.equals("name")) {
-                        Sort sort = Sort.by(
-                                ascending ? Sort.Direction.ASC : Sort.Direction.DESC, "name"
-                        );
-                        capacities = capacityRepository.findAllBy(PageRequest.of(page, size, sort));
-                    } else {
-                        String sql = """
-                                SELECT c.id, c.name, c.description
-                                FROM ms_capacity.capacity c
-                                LEFT JOIN ms_capacity.capacity_technology ct
-                                    ON c.id = ct.capacity_id
-                                GROUP BY c.id, c.name, c.description
-                                ORDER BY COUNT(ct.technology_id) %s
-                                LIMIT %d OFFSET %d
-                                """.formatted(direction, size, offset);
-
-                        capacities = databaseClient.sql(sql)
-                                .map((row, meta) -> new CapacityEntity(
-                                        row.get("id", Long.class),
-                                        row.get("name", String.class),
-                                        row.get("description", String.class)
-                                ))
-                                .all();
-                    }
+                    if (sortBy.equals("name"))
+                        capacities = capacityQueryRepository.findAllOrderByName(direction, size, offset);
+                    else
+                        capacities = capacityQueryRepository.findAllOrderByTechnologyCount(direction, size, offset);
 
                     return capacities
                             .flatMap(this::mapWithTechnologies)
