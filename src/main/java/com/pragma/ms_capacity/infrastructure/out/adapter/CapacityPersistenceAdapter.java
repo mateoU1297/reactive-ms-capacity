@@ -38,7 +38,7 @@ public class CapacityPersistenceAdapter implements ICapacityPersistencePort {
                             .toList();
 
                     return capacityTechnologyRepository.saveAll(relations)
-                            .collectList()
+                            .then()
                             .thenReturn(saved);
                 })
                 .map(saved -> {
