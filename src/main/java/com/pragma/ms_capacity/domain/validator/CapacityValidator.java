@@ -8,6 +8,7 @@ import com.pragma.ms_capacity.domain.model.Technology;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Objects;
 
 public class CapacityValidator {
 
@@ -17,7 +18,8 @@ public class CapacityValidator {
     private static final int MAX_DESCRIPTION_LENGTH = 90;
     private static final List<String> VALID_SORT_FIELDS = List.of("name", "technologyCount");
 
-    private CapacityValidator() {}
+    private CapacityValidator() {
+    }
 
     public static Mono<Capacity> validate(Capacity capacity) {
         return validateName(capacity.getName())
@@ -56,7 +58,7 @@ public class CapacityValidator {
     }
 
     private static Mono<Void> validateTechnologies(List<Technology> technologies) {
-        if (technologies == null || technologies.size() < MIN_TECHNOLOGIES)
+        if (Objects.isNull(technologies) || technologies.size() < MIN_TECHNOLOGIES)
             return Mono.error(new InvalidTechnologyCountException(
                     "Capacity must have at least " + MIN_TECHNOLOGIES + " technologies"));
 

@@ -7,13 +7,13 @@ import com.pragma.ms_capacity.domain.usecase.CapacityUseCase;
 import com.pragma.ms_capacity.infrastructure.out.adapter.CapacityPersistenceAdapter;
 import com.pragma.ms_capacity.infrastructure.out.http.TechnologyWebClientAdapter;
 import com.pragma.ms_capacity.infrastructure.out.mapper.ICapacityEntityMapper;
+import com.pragma.ms_capacity.infrastructure.out.repository.CapacityQueryRepository;
 import com.pragma.ms_capacity.infrastructure.out.repository.CapacityRepository;
 import com.pragma.ms_capacity.infrastructure.out.repository.CapacityTechnologyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
@@ -23,6 +23,7 @@ public class BeanConfig {
     private final CapacityRepository capacityRepository;
     private final CapacityTechnologyRepository capacityTechnologyRepository;
     private final ICapacityEntityMapper capacityEntityMapper;
+    private final CapacityQueryRepository capacityQueryRepository;
 
 
     @Bean
@@ -39,9 +40,9 @@ public class BeanConfig {
     }
 
     @Bean
-    public ICapacityPersistencePort capacityPersistencePort(ITechnologyClientPort technologyClientPort, DatabaseClient databaseClient) {
+    public ICapacityPersistencePort capacityPersistencePort(ITechnologyClientPort technologyClientPort) {
         return new CapacityPersistenceAdapter(capacityRepository, capacityTechnologyRepository, capacityEntityMapper,
-                technologyClientPort, databaseClient);
+                technologyClientPort, capacityQueryRepository);
     }
 
     @Bean
